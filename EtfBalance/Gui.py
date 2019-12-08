@@ -6,7 +6,8 @@ Created on 31 janv. 2019
 '''
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
-    QLabel, QTableWidget, QTableWidgetItem, QAbstractScrollArea, QMainWindow
+    QLabel, QTableWidget, QTableWidgetItem, QAbstractScrollArea, QHBoxLayout,\
+    QLineEdit
 from PyQt5 import QtCore
 import sys
 import EtfBalance
@@ -45,13 +46,19 @@ if __name__ == '__main__':
     balancedWallet = binckWallet.balance(0.9)
 
     window = QWidget()
-    layout = QVBoxLayout()
-    layout.addWidget(QLabel(binckWallet.name))
-    layout.addWidget(View.buildQTableWidget(binckWallet))
-    layout.addWidget(QLabel(balancedWallet.name))
-    layout.addWidget(View.buildQTableWidget(balancedWallet))
-    layout.addWidget(QPushButton('Balanced'))
-    window.setLayout(layout)
+
+    hlayout = QHBoxLayout()
+    hlayout.addWidget(QLabel(balancedWallet.name))
+    hlayout.addWidget(QLineEdit("{}".format(balancedWallet.ratioPrecision)))
+    hlayout.addStretch()
+
+    vlayout = QVBoxLayout()
+    vlayout.addWidget(QLabel(binckWallet.name))
+    vlayout.addWidget(View.buildQTableWidget(binckWallet))
+    vlayout.addLayout(hlayout)
+    vlayout.addWidget(View.buildQTableWidget(balancedWallet))
+    vlayout.addWidget(QPushButton('Balanced'))
+    window.setLayout(vlayout)
 
     window.show()
     sys.exit(app.exec_())

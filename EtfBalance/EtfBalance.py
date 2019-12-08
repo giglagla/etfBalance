@@ -50,6 +50,7 @@ class Etf:
 
 class Wallet:
     def __init__(self, name):
+        self.ratioPrecision = 0.9
         self.name = name
         self.etfList = [Etf('Amundi ETF MSCI Emg Markets', 1, 19.979, 0.2),
                         Etf('BNP Easy S&P 500', 8, 13.3035, 0.6),
@@ -84,6 +85,7 @@ class Wallet:
         lastBalancedWallet = Wallet("")
         walletToBalance = deepcopy(self)
         walletToBalance.name = "Balanced wallet"
+        walletToBalance.ratioPrecision = ratioPrecision
 
         while(lastBalancedWallet != walletToBalance):
             for elem in walletToBalance.etfList:
