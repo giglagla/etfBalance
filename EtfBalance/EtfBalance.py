@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from PyQt5 import QtCore
 from copy import deepcopy
 import sys
 
@@ -52,9 +53,9 @@ class Wallet:
     def __init__(self, name):
         self.ratioPrecision = 0.9
         self.name = name
-        self.etfList = [Etf('Amundi ETF MSCI Emg Markets', 1, 19.979, 0.2),
-                        Etf('BNP Easy S&P 500', 8, 13.3035, 0.6),
-                        Etf('Vanguard FTSE Developed Europe', 1, 31.988, 0.2)]
+        self.etfList = [Etf('Amundi ETF PEA MSCI Emgerging Markets', 2, 21.88, 0.2),
+                        Etf('BNP Easy S&P 500', 16, 14.44, 0.6),
+                        Etf('Vanguard FTSE Developed Europe', 1, 33.44, 0.2)]
         self.computeEtfRatio()
 
     def __repr__(self):
@@ -114,6 +115,30 @@ class Wallet:
         while (self.totalAmount() < minVal):
             for elem in self.etfList:
                 elem.number += pgcdFound
+
+
+class WalletTableModel(QtCore.QAbstractTableModel):
+    def __init__(self, parent=None, *args):
+        # super(TableModel, self).__init__()
+        self.dataTable = None
+
+    def update(self, dataIn):
+        self.datatable = dataIn
+        print('Datatable : {0}'.format(self.datatable))
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.datatable.index)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return len(self.datatable.columns.values)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            i = index.row()
+            j = index.column()
+            return '{0}'.format(self.datatable.iget_value(i, j))
+        else:
+            return QtCore.QVariant()
 
 
 if __name__ == '__main__':

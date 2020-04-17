@@ -1,9 +1,4 @@
 #!/usr/bin/python
-'''
-Created on 31 janv. 2019
-
-@author: guillaume
-'''
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
     QLabel, QTableWidget, QTableWidgetItem, QAbstractScrollArea, QHBoxLayout,\
@@ -13,10 +8,47 @@ import sys
 import EtfBalance
 
 
-class View(object):
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Etf Balance")
+        self.windowLayout = QVBoxLayout()
+        self.originalWallet = EtfBalance.Wallet("Binck wallet")
+        self.balancedWallet = self.originalWallet.balance(0.9)
+        self.QWOriginalWallet = self.buildQTableWidget(self.originalWallet)
+        self.QWBalancedWallet = self.buildQTableWidget(self.balancedWallet)
+        self.initUi()
 
-    @staticmethod
-    def buildQTableWidget(wallet):
+    def initUi(self):
+        # Original Wallet
+        self.windowLayout.addWidget(QLabel(self.originalWallet.name))
+        self.windowLayout.addWidget(self.QWOriginalWallet)
+
+        # Balanced Wallet
+        self.windowLayout.addWidget(QLabel(self.balancedWallet.name))
+        self.windowLayout.addWidget(self.QWBalancedWallet)
+
+        # Precision
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(QLabel("Precision:"))
+        hlayout.addWidget(QLineEdit("{}".format(self.balancedWallet.ratioPrecision)))
+        hlayout.addStretch()
+        self.windowLayout.addLayout(hlayout)
+
+        # Button
+        balanceButton = QPushButton('Balanced', self)
+        balanceButton.clicked.connect(self.balanceButtonClicked)
+        self.windowLayout.addWidget(balanceButton)
+
+        self.setLayout(self.windowLayout)
+        self.show()
+
+    @QtCore.pyqtSlot()
+    def balanceButtonClicked(self):
+        print('prout')
+        self.QWOriginalWallet = self.buildQTableWidget(self.balancedWallet)
+
+    def buildQTableWidget(self, wallet):
         qtwWallet = QTableWidget()
         qtwWallet.setColumnCount(5)
         qtwWallet.setHorizontalHeaderLabels(['Label', 'Number', 'Rate',
@@ -41,24 +73,5 @@ class View(object):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
-    binckWallet = EtfBalance.Wallet("Binck wallet")
-    balancedWallet = binckWallet.balance(0.9)
-
-    window = QWidget()
-
-    hlayout = QHBoxLayout()
-    hlayout.addWidget(QLabel(balancedWallet.name))
-    hlayout.addWidget(QLineEdit("{}".format(balancedWallet.ratioPrecision)))
-    hlayout.addStretch()
-
-    vlayout = QVBoxLayout()
-    vlayout.addWidget(QLabel(binckWallet.name))
-    vlayout.addWidget(View.buildQTableWidget(binckWallet))
-    vlayout.addLayout(hlayout)
-    vlayout.addWidget(View.buildQTableWidget(balancedWallet))
-    vlayout.addWidget(QPushButton('Balanced'))
-    window.setLayout(vlayout)
-
-    window.show()
+    window = MainWindow()
     sys.exit(app.exec_())
