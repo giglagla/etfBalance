@@ -45,6 +45,17 @@ class Etf:
     def __ne__(self, other):
         return not self == other
 
+    def __iter__(self):
+        yield self.label
+        yield self.number
+        yield self.rate
+        yield self.wishedRatio
+        yield self.realRatio
+
+    def __getitem__(self, key):
+        etfTuple = tuple(self)
+        return etfTuple[key]
+
     def value(self):
         return self.number * self.rate
 
@@ -115,30 +126,6 @@ class Wallet:
         while (self.totalAmount() < minVal):
             for elem in self.etfList:
                 elem.number += pgcdFound
-
-
-class WalletTableModel(QtCore.QAbstractTableModel):
-    def __init__(self, parent=None, *args):
-        # super(TableModel, self).__init__()
-        self.dataTable = None
-
-    def update(self, dataIn):
-        self.datatable = dataIn
-        print('Datatable : {0}'.format(self.datatable))
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.datatable.index)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.datatable.columns.values)
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            i = index.row()
-            j = index.column()
-            return '{0}'.format(self.datatable.iget_value(i, j))
-        else:
-            return QtCore.QVariant()
 
 
 if __name__ == '__main__':
