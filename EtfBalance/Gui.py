@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
-QLabel, QTableWidget, QTableWidgetItem, QAbstractScrollArea, QHBoxLayout,\
-    QLineEdit, QTableView
-from PyQt5 import QtCore
+QLabel, QAbstractScrollArea, QHBoxLayout, QLineEdit, QTableView, QSizePolicy, \
+QAbstractItemView
+from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant, pyqtSlot
 import sys
 import EtfBalance
 
 
-""" VIEW """
+
 class Widget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
@@ -22,27 +22,22 @@ class Widget(QWidget):
         self.windowLayout = QVBoxLayout()
 
         # Original Wallet
-        self.originalWalletModel = WalletTableModel(self.originalWallet)
-        self.originaltableview = QTableView()
-        self.originaltableview.setModel(self.originalWalletModel)
-        self.originaltableview.resizeColumnsToContents()
-        self.originaltableview.resizeRowsToContents()
-        self.originaltableview.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.windowLayout.addWidget(self.originaltableview)
+        self.windowLayout.addWidget(QLabel("Original Wallet:"))
+        self.originalWalletWidget = WalletView(self.originalWallet)
+        self.windowLayout.addWidget(self.originalWalletWidget)
 
         # Balanced Wallet
-        self.balancedWalletModel = WalletTableModel(self.balancedWallet)
-        self.balancedtableview = QTableView()
-        self.balancedtableview.setModel(self.balancedWalletModel)
-        self.balancedtableview.resizeColumnsToContents()
-        self.balancedtableview.resizeRowsToContents()
-        self.balancedtableview.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.windowLayout.addWidget(self.balancedtableview)
+        self.windowLayout.addWidget(QLabel("Balanced Wallet:"))
+        self.balancedWalletWidget = WalletView(self.balancedWallet)
+        self.balancedWalletWidget.view.setEditTriggers(QAbstractItemView.NoEditTriggers);
+        self.windowLayout.addWidget(self.balancedWalletWidget)
 
         # Precision
         hlayout = QHBoxLayout()
         hlayout.addWidget(QLabel("Precision:"))
-        hlayout.addWidget(QLineEdit("{}".format(self.balancedWallet.ratioPrecision)))
+        self.ratioPrecisionWidget = QLineEdit("{}".format(self.balancedWallet.ratioPrecision))
+        hlayout.addWidget(self.ratioPrecisionWidget)
+        hlayout.addWidget(QLabel("[0.0;1.0]"))
         hlayout.addStretch()
         self.windowLayout.addLayout(hlayout)
 
@@ -53,44 +48,86 @@ class Widget(QWidget):
 
         self.setLayout(self.windowLayout)
 
-    @QtCore.pyqtSlot()
+    @pyqtSlot()
     def balanceButtonClicked(self):
-        # TODO : from QTableWidget to EtfBalance.Wallet
-        print("%s " % self.originalWallet.etfList[0][1])
+        newPrecision = float(self.ratioPrecisionWidget.text())
+        self.balancedWallet = self.originalWallet.balance(newPrecision)
+        self.balancedWalletWidget.view.setModel( WalletModel(self.balancedWallet))
 
 
-""" Wallet model class """
-class WalletTableModel(QtCore.QAbstractTableModel):
+class WalletView(QWidget):
+    def __init__(self, data):
+        QWidget.__init__(self)
+
+        # Getting the Model
+        self.model = WalletModel(data)
+
+        # Creating a QTableView
+        self.view = QTableView()
+        self.view.setModel(self.model)
+        self.view.resizeColumnsToContents()
+        self.view.resizeRowsToContents()
+        self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+
+        # QWidget Layout
+        self.mainlayout = QHBoxLayout()
+        size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+
+        # Left layout
+        size.setHorizontalStretch(1)
+        self.view.setSizePolicy(size)
+        self.mainlayout.addWidget(self.view)
+
+        # Set the layout to the QWidget
+        self.setLayout(self.mainlayout)
+
+
+class WalletModel(QAbstractTableModel):
     def __init__(self, data=None):
-        QtCore.QAbstractTableModel.__init__(self)
+        QAbstractTableModel.__init__(self)
         self.datain = data
-        print('Data : {0}'.format(data))
+        self.header = ["Label", "Number", "Rate", "Wished Ratio", "Real Ratio"]
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        print("rowCount: %s " % len(self.datain.etfList))
+    def rowCount(self, parent=QModelIndex()):
         return len(self.datain.etfList)
 
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        # TODO hardcoded 5 val
-        print("columnCount: %s " % 5)
-        return 5
+    def columnCount(self, parent=QModelIndex()):
+        return len(self.header)
 
     def headerData(self, section, orientation, role):
-        if role != QtCore.Qt.DisplayRole:
+        if role != Qt.DisplayRole:
             return None
-        if orientation == QtCore.Qt.Horizontal:
-            return ("Label", "Number", "Rate", "Wished Ratio", "Real Ratio")[section]
+        if orientation == Qt.Horizontal:
+            return self.header[section]
         else:
             return "{}".format(section)
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            i = index.row()
-            j = index.column()
-            print('{0}'.format(self.datain.etfList[i][j]))
-            return '{0}'.format(self.datain.etfList[i][j])
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            row, column = index.row(), index.column()
+            value = self.datain.etfList[row][column]
+
+            # Perform per-type checks and render accordingly.
+            if isinstance(value, float):
+                return "%.2f" % value
+            if isinstance(value, int):
+                return "%d" % value
+            if isinstance(value, str):
+                return '"%s"' % value
         else:
-            return QtCore.QVariant()
+            return None
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            row, column = index.row(), index.column()
+            self.datain.etfList[row][column] = type(self.datain.etfList[row][column])(value)
+            self.dataChanged.emit(index, index, [])
+            return True
+        else:
+            return False
+
+    def flags(self, index):
+        return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
 
 """ MAIN """

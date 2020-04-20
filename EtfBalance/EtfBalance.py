@@ -53,11 +53,15 @@ class Etf:
         yield self.realRatio
 
     def __getitem__(self, key):
-        etfTuple = tuple(self)
-        return etfTuple[key]
+        etfElems = list(self)
+        return etfElems[key]
+
+    def __setitem__(self, key, value):
+        attrName = list(self.__dict__.keys())[key]
+        setattr(self, attrName, value)
 
     def value(self):
-        return self.number * self.rate
+        return float(self.number) * float(self.rate)
 
 
 class Wallet:
@@ -102,7 +106,7 @@ class Wallet:
         while(lastBalancedWallet != walletToBalance):
             for elem in walletToBalance.etfList:
                 walletToBalance.computeEtfRatio()
-                while (elem.realRatio < (elem.wishedRatio * ratioPrecision)):
+                while (elem.realRatio < float(elem.wishedRatio * ratioPrecision)):
                     elem.number += 1
                     walletToBalance.computeEtfRatio()
             lastBalancedWallet = deepcopy(walletToBalance)
@@ -120,7 +124,7 @@ class Wallet:
 
         """ Set Etf numbers to PGCD """
         for elem in self.etfList:
-            elem.number = int(elem.number / pgcdFound)
+            elem.number = elem.number / pgcdFound
 
         """ Reduce Etf numbers """
         while (self.totalAmount() < minVal):
