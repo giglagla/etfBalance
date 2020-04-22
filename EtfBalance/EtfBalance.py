@@ -68,9 +68,12 @@ class Wallet:
     def __init__(self, name):
         self.ratioPrecision = 0.9
         self.name = name
-        self.etfList = [Etf('Amundi ETF PEA MSCI Emgerging Markets', 2, 21.88, 0.2),
-                        Etf('BNP Easy S&P 500', 16, 14.44, 0.6),
-                        Etf('Vanguard FTSE Developed Europe', 1, 33.44, 0.2)]
+        self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 2, 21.88, 0.1),
+                        Etf('BNP Easy S&P 500', 16, 14.44, 0.4),
+                        Etf('Vanguard FTSE Developed Europe', 1, 33.44, 0.2),
+                        Etf('Amundi ETF PEA Japan TOPIX', 0, 19, 0.1),
+                        Etf('BNP Europe Small Caps Ex Cont Weapons', 0, 191, 0.1),
+                        Etf('Amundi ETF Russel 2000', 0, 155, 0.1)]
         self.computeEtfRatio()
 
     def __repr__(self):
