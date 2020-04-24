@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
 QLabel, QAbstractScrollArea, QHBoxLayout, QLineEdit, QTableView, QSizePolicy, \
-QAbstractItemView
+QAbstractItemView, QMainWindow, QHeaderView
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant, pyqtSlot
 from PyQt5.QtGui import QFont
 import qdarkstyle
@@ -11,10 +11,10 @@ import EtfBalance
 
 
 
-class Widget(QWidget):
+class CentralWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        self.originalWallet = EtfBalance.Wallet("Binck wallet")
+        self.originalWallet = EtfBalance.Wallet("Original wallet")
         self.balancedWallet = self.originalWallet.balance(0.9)
         self.initUi()
 
@@ -33,19 +33,17 @@ class Widget(QWidget):
         hlayout.addWidget(QLabel("Precision:"))
         self.ratioPrecisionWidget = QLineEdit("{}".format(self.balancedWallet.ratioPrecision))
         hlayout.addWidget(self.ratioPrecisionWidget)
-        #hlayout.addWidget(QLabel("[0.0;1.0]"))
-
         balanceButton = QPushButton('Balanced', self)
         balanceButton.clicked.connect(self.balanceButtonClicked)
+
         hlayout.addWidget(balanceButton)
-        #hlayout.addStretch()
+        hlayout.addStretch()
         self.windowLayout.addLayout(hlayout)
 
         # Balanced Wallet
         self.balancedWalletWidget = WalletView(self.balancedWallet)
         self.balancedWalletWidget.view.setEditTriggers(QAbstractItemView.NoEditTriggers);
         self.windowLayout.addWidget(self.balancedWalletWidget)
-
 
         self.setLayout(self.windowLayout)
 
@@ -60,46 +58,48 @@ class Widget(QWidget):
 class WalletView(QWidget):
     def __init__(self, data):
         QWidget.__init__(self)
-
-        # Getting the Model
         self.model = WalletModel(data)
         self.model.dataChanged.connect(self.updateWalletValue)
 
-        # Creating a QTableView
-        self.view = QTableView()
+        # Wallet Name
+        self.name = QLabel(self.model.wallet.name, self)
+        self.name.setStyleSheet("font: 20px arial;")
+
+        # Wallet
+        self.view = QTableView(self)
         self.view.setModel(self.model)
-        self.view.resizeColumnsToContents()
+        self.view.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.view.verticalHeader().hide()
         self.view.resizeRowsToContents()
+        # ensure the first column is automatically resized
+        self.view.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.view.resizeColumnsToContents()
         self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.name = QLabel(self.model.wallet.name)
+        # Wallet Total Value
+        self.totalAmount = QLabel("Value: %.2f €" % self.model.wallet.totalAmount(), self)
+        self.totalAmount.setStyleSheet("color: #00909e; font-size: 14px")
 
-        self.totalAmount = QLabel("Wallet value: %.2f €" % self.model.wallet.totalAmount())
-
-        # QWidget Layout
-        self.mainlayout = QVBoxLayout()
-        size = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        size.setVerticalStretch(1)
-        self.view.setSizePolicy(size)
-
+        # Widget layout
+        self.mainlayout = QVBoxLayout(self)
         self.mainlayout.addWidget(self.name)
         self.mainlayout.addWidget(self.view)
         self.mainlayout.addWidget(self.totalAmount)
-
-        # Set the layout to the QWidget
+        self.mainlayout.addStretch(0)
         self.setLayout(self.mainlayout)
 
     @pyqtSlot()
     def updateWalletValue(self):
         currentSelectedModel = self.view.selectionModel().model()
-        self.totalAmount.setText("Wallet value: %.2f €" % currentSelectedModel.wallet.totalAmount())
+        self.totalAmount.setText("Value: %.2f €" % currentSelectedModel.wallet.totalAmount())
 
 
 class WalletModel(QAbstractTableModel):
     def __init__(self, wallet=None):
         QAbstractTableModel.__init__(self)
         self.wallet = wallet
-        self.headerLabels = ["Label", "Number", "Rate", "Wished Ratio", "Real Ratio"]
+        self.headerLabels = ["Label", "Nb", "Price", "Weight", "Wished weight"]
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.wallet.etfList)
@@ -143,11 +143,23 @@ class WalletModel(QAbstractTableModel):
         return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
 
 
-""" MAIN """
+class MainWindow(QMainWindow):
+    def __init__(self, widget):
+        QMainWindow.__init__(self)
+        self.setWindowTitle("ETF Wallet Balancer")
+        self.setCentralWidget(widget)
+        self.setStyleSheet("color: #dae1e7;")
+
+
 if __name__ == '__main__':
+    # Qt Application
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    app.setFont(QFont("Arial", 9, 60))
-    window = Widget()
+    app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+    # QWidget
+    widget = CentralWidget()
+    # QMainWindow using QWidget as central widget
+    window = MainWindow(widget)
     window.show()
+
+    # Execute application
     sys.exit(app.exec_())

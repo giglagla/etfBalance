@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from PyQt5 import QtCore
 from copy import deepcopy
 import sys
 
@@ -20,26 +19,26 @@ def pgcd(*n):
 
 class Etf:
 
-    def __init__(self, label, number, rate, wishedRatio):
+    def __init__(self, label, number, price, wishedRatio):
         self.label = label
         self.number = number
-        self.rate = rate
-        self.wishedRatio = wishedRatio
+        self.price = price
         self.realRatio = 0
+        self.wishedRatio = wishedRatio
 
     def __repr__(self):
-        return "<Etf label:'%s'\t number:%s\t rate:%s\t wishedRatio:%s\t realRatio:%s>" % \
-            (self.label, self.number, self.rate, self.wishedRatio, self.realRatio)
+        return "<Etf label:'%s'\t number:%s\t price:%s\t wishedRatio:%s\t realRatio:%s>" % \
+            (self.label, self.number, self.price, self.wishedRatio, self.realRatio)
 
     def __eq__(self, other):
         return (self.label == self.label
                 and self.number == other.number
-                and self.rate == other.rate
+                and self.price == other.price
                 and self.wishedRatio == other.wishedRatio
                 and self.realRatio == other.realRatio)
 
     def __hash__(self):
-        return hash((self.label, self.number, self.rate, self.wishedRatio,
+        return hash((self.label, self.number, self.price, self.wishedRatio,
                      self.realRatio))
 
     def __ne__(self, other):
@@ -48,9 +47,9 @@ class Etf:
     def __iter__(self):
         yield self.label
         yield self.number
-        yield self.rate
-        yield self.wishedRatio
+        yield self.price
         yield self.realRatio
+        yield self.wishedRatio
 
     def __getitem__(self, key):
         etfElems = list(self)
@@ -61,7 +60,7 @@ class Etf:
         setattr(self, attrName, value)
 
     def value(self):
-        return float(self.number) * float(self.rate)
+        return float(self.number) * float(self.price)
 
 
 class Wallet:
@@ -101,6 +100,8 @@ class Wallet:
     def balance(self, ratioPrecision=0.9):
         """ Balance the wallet with a given precision,
         in order to reach the wished ratio for each etf"""
+        if ratioPrecision >= 1:
+            ratioPrecision = 1
         lastBalancedWallet = Wallet("")
         walletToBalance = deepcopy(self)
         walletToBalance.name = "Balanced wallet"
