@@ -2,9 +2,8 @@
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
 QLabel, QAbstractScrollArea, QHBoxLayout, QLineEdit, QTableView, QSizePolicy, \
-QAbstractItemView, QMainWindow, QHeaderView
-from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant, pyqtSlot
-from PyQt5.QtGui import QFont
+QAbstractItemView, QMainWindow, QHeaderView, QSpacerItem
+from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, pyqtSlot
 import qdarkstyle
 import sys
 import EtfBalance
@@ -14,43 +13,54 @@ import EtfBalance
 class CentralWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        self.originalWallet = EtfBalance.Wallet("Original wallet")
-        self.balancedWallet = self.originalWallet.balance(0.9)
+        self.originalWallet = EtfBalance.Wallet("Original Wallet")
+        self.balancedWallet = self.originalWallet.balance(ratioPrecision=0.9)
         self.initUi()
 
     def initUi(self):
         """ GUI initialization """
         self.setWindowTitle("ETF Wallet Balancer")
-        self.windowLayout = QVBoxLayout()
 
         # Original Wallet
         self.originalWalletWidget = WalletView(self.originalWallet)
-        self.windowLayout.addWidget(self.originalWalletWidget)
-        total = self.originalWalletWidget.model.wallet.totalAmount()
-
-        # Precision + Balance
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(QLabel("Precision:"))
+        # Precision
+        self.lPrecision = QLabel("Precision:")
         self.ratioPrecisionWidget = QLineEdit("{}".format(self.balancedWallet.ratioPrecision))
-        hlayout.addWidget(self.ratioPrecisionWidget)
-        balanceButton = QPushButton('Balanced', self)
-        balanceButton.clicked.connect(self.balanceButtonClicked)
-
-        hlayout.addWidget(balanceButton)
-        hlayout.addStretch()
-        self.windowLayout.addLayout(hlayout)
-
+        # Balance button
+        self.balanceButton = QPushButton('Balance', self)
+        self.balanceButton.clicked.connect(self.balanceButtonClicked)
+        # Reset button
+        self.resetButton = QPushButton('Reset', self)
+        self.resetButton.clicked.connect(self.resetButtonClicked)
         # Balanced Wallet
         self.balancedWalletWidget = WalletView(self.balancedWallet)
         self.balancedWalletWidget.view.setEditTriggers(QAbstractItemView.NoEditTriggers);
-        self.windowLayout.addWidget(self.balancedWalletWidget)
 
+        # Layouts
+        self.windowLayout = QVBoxLayout()
+        self.windowLayout.addWidget(self.originalWalletWidget)
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(self.lPrecision)
+        hlayout.addWidget(self.ratioPrecisionWidget)
+        hlayout.addStretch()
+        hlayout.addWidget(self.balanceButton)
+        hlayout.addWidget(self.resetButton)
+        self.windowLayout.addLayout(hlayout)
+        self.windowLayout.addSpacerItem(QSpacerItem(0, 30, QSizePolicy.Expanding))
+        self.windowLayout.addWidget(self.balancedWalletWidget)
         self.setLayout(self.windowLayout)
+
+    @pyqtSlot()
+    def resetButtonClicked(self):
+        self.originalWallet = EtfBalance.Wallet("Original Wallet")
+        self.originalWalletWidget.view.setModel(WalletModel(self.originalWallet))
+        self.originalWalletWidget.updateWalletValue()
+        return
 
     @pyqtSlot()
     def balanceButtonClicked(self):
         newPrecision = float(self.ratioPrecisionWidget.text())
-        self.balancedWallet = self.originalWallet.balance(newPrecision)
+        self.balancedWallet = self.originalWallet.balance(ratioPrecision=newPrecision)
         self.balancedWalletWidget.view.setModel(WalletModel(self.balancedWallet))
         self.balancedWalletWidget.updateWalletValue()
 
@@ -65,19 +75,18 @@ class WalletView(QWidget):
         self.name = QLabel(self.model.wallet.name, self)
         self.name.setStyleSheet("font: 20px arial;")
 
-        # Wallet
+        # QTableView
         self.view = QTableView(self)
         self.view.setModel(self.model)
         self.view.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.view.verticalHeader().hide()
         self.view.resizeRowsToContents()
-        # ensure the first column is automatically resized
         self.view.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.view.resizeColumnsToContents()
         self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        # Wallet Total Value
+        # Total Value
         self.totalAmount = QLabel("Value: %.2f €" % self.model.wallet.totalAmount(), self)
         self.totalAmount.setStyleSheet("color: #00909e; font-size: 14px")
 
@@ -86,7 +95,6 @@ class WalletView(QWidget):
         self.mainlayout.addWidget(self.name)
         self.mainlayout.addWidget(self.view)
         self.mainlayout.addWidget(self.totalAmount)
-        self.mainlayout.addStretch(0)
         self.setLayout(self.mainlayout)
 
     @pyqtSlot()
@@ -148,7 +156,7 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setWindowTitle("ETF Wallet Balancer")
         self.setCentralWidget(widget)
-        self.setStyleSheet("color: #dae1e7;")
+        self.setStyleSheet("color: #dae1e7; font-size:13px")
 
 
 if __name__ == '__main__':

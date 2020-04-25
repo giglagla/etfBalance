@@ -68,8 +68,8 @@ class Wallet:
         self.ratioPrecision = 0.9
         self.name = name
         self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 2, 21.88, 0.1),
-                        Etf('BNP Easy S&P 500', 16, 14.44, 0.4),
-                        Etf('Vanguard FTSE Developed Europe', 1, 33.44, 0.2),
+                        Etf('BNP Easy S&P 500', 16, 11.82, 0.4),
+                        Etf('Vanguard FTSE Developed Europe', 1, 30.5, 0.2),
                         Etf('Amundi ETF PEA Japan TOPIX', 0, 19, 0.1),
                         Etf('BNP Europe Small Caps Ex Cont Weapons', 0, 191, 0.1),
                         Etf('Amundi ETF Russel 2000', 0, 155, 0.1)]
@@ -97,14 +97,14 @@ class Wallet:
             total += elem.value()
         return total
 
-    def balance(self, ratioPrecision=0.9):
+    def balance(self, newWalletName="Balanced Wallet", ratioPrecision=0.9):
         """ Balance the wallet with a given precision,
         in order to reach the wished ratio for each etf"""
         if ratioPrecision >= 1:
             ratioPrecision = 1
         lastBalancedWallet = Wallet("")
         walletToBalance = deepcopy(self)
-        walletToBalance.name = "Balanced wallet"
+        walletToBalance.name = newWalletName
         walletToBalance.ratioPrecision = ratioPrecision
 
         while(lastBalancedWallet != walletToBalance):
