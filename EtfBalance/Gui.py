@@ -6,14 +6,14 @@ QAbstractItemView, QMainWindow, QHeaderView, QSpacerItem
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, pyqtSlot
 import qdarkstyle
 import sys
-import EtfBalance
+import etfwallet
 
 
 
 class CentralWidget(QWidget):
     def __init__(self):
         QWidget.__init__(self)
-        self.originalWallet = EtfBalance.Wallet("Original Wallet")
+        self.originalWallet = etfwallet.Wallet("Original Wallet")
         self.balancedWallet = self.originalWallet.balance(ratioPrecision=0.9)
         self.initUi()
 
@@ -52,7 +52,7 @@ class CentralWidget(QWidget):
 
     @pyqtSlot()
     def resetButtonClicked(self):
-        self.originalWallet = EtfBalance.Wallet("Original Wallet")
+        self.originalWallet = etfwallet.Wallet("Original Wallet")
         self.originalWalletWidget.view.setModel(WalletModel(self.originalWallet))
         self.originalWalletWidget.updateWalletValue()
         return

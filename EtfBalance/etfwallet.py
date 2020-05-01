@@ -2,6 +2,8 @@
 
 from copy import deepcopy
 import sys
+import stockexchange
+import asyncio
 
 
 def pgcd(*n):
@@ -67,12 +69,12 @@ class Wallet:
     def __init__(self, name):
         self.ratioPrecision = 0.9
         self.name = name
-        self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 2, 21.88, 0.1),
-                        Etf('BNP Easy S&P 500', 16, 11.82, 0.4),
-                        Etf('Vanguard FTSE Developed Europe', 1, 30.5, 0.2),
-                        Etf('Amundi ETF PEA Japan TOPIX', 0, 19, 0.1),
-                        Etf('BNP Europe Small Caps Ex Cont Weapons', 0, 191, 0.1),
-                        Etf('Amundi ETF Russel 2000', 0, 155, 0.1)]
+        paaem, ese, veur, ptpxe = asyncio.run(stockexchange.currentPrice('PAEEM.PA', 'ESE.PA', 'VEUR.AS', 'PTPXE.PA'))
+        self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 2, paaem, 0.1),
+                        Etf('BNP Easy S&P 500', 16, ese, 0.45),
+                        Etf('Vanguard FTSE Developed Europe', 1, veur, 0.2),
+                        Etf('Amundi ETF PEA Japan TOPIX', 0, ptpxe, 0.1),
+                        Etf('Amundi ETF Russel 2000', 0, 170.38, 0.15)]
         self.computeEtfRatio()
 
     def __repr__(self):
@@ -136,8 +138,8 @@ class Wallet:
                 elem.number += pgcdFound
 
 
+""" for test purpose only """
 if __name__ == '__main__':
-
     binckWallet = Wallet("Binck wallet")
     print("%s:\n%s" % (binckWallet.name, binckWallet))
     print("Total Wallet: %s" % binckWallet.totalAmount())
