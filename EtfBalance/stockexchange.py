@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3.7
+
 from urllib.parse import urlencode
 import aiohttp
 import asyncio
@@ -7,12 +8,18 @@ import sys
 import time
 
 
-API_KEY = 'bqk1nffrh5r9t8htebpg'
-BASE_URL = 'https://finnhub.io/api/v1'
+RAPIDAPI_KEY = '7ce7f37e24msh5cd3c0ae48bc6cep1e367djsneddc64324900'
+RAPIDAPI_HOST = 'apidojo-yahoo-finance-v1.p.rapidapi.com'
+RAPIDAPI_URL = 'https://' + RAPIDAPI_HOST
+
 
 async def fetchJson(url, params):
     """ Fetch a web page in json-encoded content """
-    async with aiohttp.ClientSession() as session:
+    headers = {
+        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY
+    }
+    async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url, params=params) as response:
             return await response.json()
 
@@ -21,31 +28,32 @@ async def gatherResources(resources):
     """ Gather resources and schedule them concurrently  """
     coroutines = []
     for resource in resources:
-        resource.get("params").update({'token': API_KEY})
+        resource.get("params").update({'region': 'FR', 'lang': 'fr'})
         coroutines.append(fetchJson(resource.get("url"), resource.get("params")))
 
     return await asyncio.gather(*coroutines)
 
+
 async def currentPrice(*symbols):
     """ Get stocks symboles current prices """
-    resources = []
-    for symbol in symbols:
-        url = BASE_URL + "/quote"
-        params = {'symbol': symbol}
-        resources.append({"url":url, "params":params})
+    url = RAPIDAPI_URL + "/market/get-quotes"
+    params = {'symbols': ','.join(symbols)}
+    resources = [{"url": url, "params": params}]
 
-    # Get only the "c" field of each result
-    results = map(lambda result: result["c"], await gatherResources(resources))
+    results = map(lambda result: result['regularMarketPrice'],
+                  (await gatherResources(resources))[0]['quoteResponse']['result'])
     return list(results)
+
 
 async def stockExchanges():
     """ Get a list of all stock exchanges """
-    url = BASE_URL + "/stock/exchange"
-    return await gatherResources([{"url":url, "params":{}}])
+    url = RAPIDAPI_URL + "/market/get-summary"
+    return await gatherResources([{"url": url, "params": {}}])
 
 
 if __name__ == '__main__':
-    asyncio.run(currentPrice('ESE.PA','ESE.PA','ESE.PA','ESE.PA','ESE.PA'))
-    asyncio.run(stockExchanges())
-
+    prices = asyncio.run(currentPrice('ESE.PA', 'VEUR.AS', 'PAEEM.PA', 'PTPXE.PA'))
+    stocks = asyncio.run(stockExchanges())
+    print(prices)
+    print(stocks)
     sys.exit()

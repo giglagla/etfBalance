@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3.7
 
 from copy import deepcopy
 import sys
@@ -69,12 +69,17 @@ class Wallet:
     def __init__(self, name):
         self.ratioPrecision = 0.9
         self.name = name
-        paaem, ese, veur, ptpxe = asyncio.run(stockexchange.currentPrice('PAEEM.PA', 'ESE.PA', 'VEUR.AS', 'PTPXE.PA'))
+        paaem, ese, veur, ptpxe, rs2k = asyncio.run(
+            stockexchange.currentPrice('PAEEM.PA',
+                                       'ESE.PA',
+                                       'VEUR.AS',
+                                       'PTPXE.PA',
+                                       'RS2K.PA'))
         self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 2, paaem, 0.1),
                         Etf('BNP Easy S&P 500', 16, ese, 0.45),
                         Etf('Vanguard FTSE Developed Europe', 1, veur, 0.2),
-                        Etf('Amundi ETF PEA Japan TOPIX', 0, ptpxe, 0.1),
-                        Etf('Amundi ETF Russel 2000', 0, 170.38, 0.15)]
+                        Etf('Amundi ETF PEA Japan TOPIX', 1, ptpxe, 0.1),
+                        Etf('Amundi ETF Russel 2000', 0, rs2k, 0.15)]
         self.computeEtfRatio()
 
     def __repr__(self):

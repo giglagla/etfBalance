@@ -1,13 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python3.7
 
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,\
-QLabel, QAbstractScrollArea, QHBoxLayout, QLineEdit, QTableView, QSizePolicy, \
-QAbstractItemView, QMainWindow, QHeaderView, QSpacerItem
+     QLabel, QAbstractScrollArea, QHBoxLayout, QLineEdit, QTableView,  \
+     QSizePolicy, QAbstractItemView, QMainWindow, QHeaderView, QSpacerItem
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, pyqtSlot
 import qdarkstyle
 import sys
 import etfwallet
-
 
 
 class CentralWidget(QWidget):
