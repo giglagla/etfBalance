@@ -82,7 +82,7 @@ class WalletView(QWidget):
         self.view.resizeRowsToContents()
         self.view.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.view.resizeColumnsToContents()
-        self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.view.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         # Total Value

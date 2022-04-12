@@ -36,7 +36,7 @@ async def gatherResources(resources):
 
 async def currentPrice(*symbols):
     """ Get stocks symboles current prices """
-    url = RAPIDAPI_URL + "/market/get-quotes"
+    url = RAPIDAPI_URL + "/market/v2/get-quotes"
     params = {'symbols': ','.join(symbols)}
     resources = [{"url": url, "params": params}]
 
@@ -47,7 +47,7 @@ async def currentPrice(*symbols):
 
 async def stockExchanges():
     """ Get a list of all stock exchanges """
-    url = RAPIDAPI_URL + "/market/get-summary"
+    url = RAPIDAPI_URL + "/market/v2/get-summary"
     return await gatherResources([{"url": url, "params": {}}])
 
 
