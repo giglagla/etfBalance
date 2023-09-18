@@ -76,11 +76,11 @@ class Wallet:
                                        'PTPXE.PA',
                                        'PAASI.PA',
                                        'RS2K.PA'))
-        self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 12, paaem, 0.12), # WW Emg
+        self.etfList = [Etf('Amundi ETF PEA MSCI Emg Markets', 21, paaem, 0.12), # WW Emg
                         Etf('BNP Easy S&P 500', 62, ese, 0.45),                 # US
                         Etf('BNP Paribas Easy Stoxx Europe 600', 25, etz, 0.1), # Europe
-                        Etf('Amundi ETF PEA Japan TOPIX', 6, ptpxe, 0.08),       # Japan
-                        Etf('Amundi MSCI EM ASIA', 10, paasi, 0.1),              # Asia
+                        Etf('Amundi ETF PEA Japan TOPIX', 16, ptpxe, 0.08),       # Japan
+                        Etf('Amundi MSCI EM ASIA', 21, paasi, 0.1),              # Asia
                         Etf('Amundi ETF Russel 2000', 2, rs2k, 0.15)]           # US small
         self.computeEtfRatio()
 
